@@ -55,15 +55,15 @@ body {
 }
 
 #root {
-  width: 1126px;
+  width: 100%; /* 👈 เปลี่ยนจาก 1126px เป็น 100% เพื่อให้กางเต็มจอ */
   max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
+  margin: 0; /* 👈 ลบ auto ออก เพราะกางเต็มจอแล้วไม่ต้องจัดกึ่งกลาง */
+  text-align: left; /* 👈 ปกติแอป POS มักจะให้ตัวหนังสือชิดซ้ายเป็นหลักครับ */
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  /* 👈 ผมลบ border-inline ออกให้ด้วยครับ ขอบของแอปจะได้เนียนไปกับหน้าจอเลย */
 }
 
 h1,
