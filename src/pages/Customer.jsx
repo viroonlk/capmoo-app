@@ -1,20 +1,58 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext'; // นำเข้า Context เพื่อดึงชื่อลูกค้า
 import * as api from '../services/api';
 
 export default function Customer() {
+  const { user } = useAuth(); // ดึงข้อมูล User ที่ล็อกอินอยู่
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState({});
-  const [form, setForm] = useState({ name: '', phone: '', pickupDate: '', pickupTime: '09:00' });
+  // ถ้าล็อกอินแล้ว ให้ดึงชื่อและเบอร์มาใส่ใน Form อัตโนมัติเลย จะได้ไม่ต้องพิมพ์ใหม่
+  const [form, setForm] = useState({ name: user?.username || '', phone: '', pickupDate: '', pickupTime: '09:00' });
   const [step, setStep] = useState(1); // 1=browse, 2=review, 3=confirmed
   const [stockCheck, setStockCheck] = useState(null);
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // --- State สำหรับเก็บข้อมูลคิวและออเดอร์ของฉัน ---
+  const [myOrders, setMyOrders] = useState([]);
+  const [queueCount, setQueueCount] = useState(0);
+
   const TIMES = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
+  // ฟังก์ชันโหลดข้อมูลสินค้า
   useEffect(() => {
     api.getProducts().then(ps => setProducts(ps.filter(p => p.status === 'available')));
   }, []);
+
+  // ฟังก์ชันโหลดข้อมูลคิวและออเดอร์ของฉัน
+  const loadMyOrders = async () => {
+    try {
+      const allOrders = await api.getOrders();
+      
+      // 1. หาออเดอร์ของลูกค้าคนนี้ ที่ยังไม่เสร็จ
+      const active = allOrders.filter(o => 
+        o.customerName === user?.username && 
+        !['completed', 'cancelled'].includes(o.status)
+      );
+      setMyOrders(active);
+
+      // 2. คำนวณคิวรวมในร้าน
+      const totalQueue = allOrders.filter(o => 
+        ['pending', 'confirmed', 'preparing'].includes(o.status)
+      ).length;
+      setQueueCount(totalQueue);
+      
+    } catch (error) {
+      console.error("โหลดข้อมูลออเดอร์ล้มเหลว", error);
+    }
+  };
+
+  // ให้โหลดออเดอร์และคิวทันทีที่เปิดหน้านี้
+  useEffect(() => {
+    if (user) {
+      loadMyOrders();
+    }
+  }, [user]);
 
   const cartItems = Object.entries(cart)
     .filter(([, qty]) => qty > 0)
@@ -51,9 +89,10 @@ export default function Customer() {
     setOrder(newOrder);
     setStep(3);
     setLoading(false);
+    loadMyOrders(); // อัปเดตคิวและออเดอร์ของฉันทันทีหลังสั่งเสร็จ
   };
 
-  const reset = () => { setCart({}); setForm({ name: '', phone: '', pickupDate: '', pickupTime: '09:00' }); setStep(1); setOrder(null); setStockCheck(null); };
+  const reset = () => { setCart({}); setStep(1); setOrder(null); setStockCheck(null); };
 
   if (step === 3 && order) return (
     <div className="page">
@@ -70,7 +109,7 @@ export default function Customer() {
           ))}
           <div className="confirm-total">💰 รวมทั้งสิ้น: <strong>฿{total.toLocaleString()}</strong></div>
         </div>
-        <button className="btn-primary" onClick={reset}>🔄 สั่งซื้อใหม่</button>
+        <button className="btn-primary" onClick={reset}>🔄 สั่งจองเพิ่ม</button>
       </div>
     </div>
   );
@@ -81,6 +120,44 @@ export default function Customer() {
         <h1 className="page-title">📱 สั่งจองออนไลน์</h1>
         <p className="page-sub">จองสินค้าล่วงหน้า — รับได้ตามวันเวลาที่เลือก</p>
       </div>
+
+      {/* 🌟 การ์ดแสดงสถานะออเดอร์ของฉัน (จะแสดงเมื่อมีออเดอร์ที่ค้างอยู่) */}
+      {myOrders.length > 0 && (
+        <div className="card" style={{ marginBottom: '28px', borderLeft: '4px solid var(--primary)', backgroundColor: 'var(--card)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '18px', margin: 0, color: 'var(--text)' }}>📦 สถานะออเดอร์ของคุณ</h3>
+            <div style={{ background: 'var(--bg2)', padding: '6px 16px', borderRadius: '20px', fontSize: '13px', color: 'var(--text2)', border: '1px solid var(--card-border)' }}>
+              คิวรอในระบบขณะนี้: <strong style={{ color: 'var(--primary)', fontSize: '16px' }}>{queueCount}</strong> คิว
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {myOrders.map(order => (
+              <div key={order.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', background: 'var(--bg2)', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: '800', color: 'var(--primary)', marginBottom: '4px' }}>
+                    ออเดอร์ #{order.id}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>
+                    {order.items.map(item => `${item.name} (${item.qty})`).join(', ')}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span className={`status-pill st-${order.status}`}>
+                    {order.status === 'pending' ? 'รอยืนยัน' :
+                     order.status === 'confirmed' ? 'รับออเดอร์แล้ว' :
+                     order.status === 'preparing' ? 'กำลังเตรียม' :
+                     order.status === 'ready' ? '✅ รอรับสินค้า' : order.status}
+                  </span>
+                  <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '6px' }}>
+                    รับเวลา: {order.pickupTime} น.
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="step-bar">
         {['เลือกสินค้า', 'ตรวจสอบ', 'ยืนยัน'].map((s, i) => (
