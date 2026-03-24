@@ -1,53 +1,45 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext'; // นำเข้า Context เพื่อดึงชื่อลูกค้า
+import { useAuth } from '../context/AuthContext';
 import * as api from '../services/api';
 
-export default function Customer() {
-  const { user } = useAuth(); // ดึงข้อมูล User ที่ล็อกอินอยู่
+// 🌟 รับ setActivePage มาเป็น Prop เพื่อสั่งเปลี่ยนไปหน้า login ได้
+export default function Customer({ setActivePage }) {
+  const { user } = useAuth(); 
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState({});
-  // ถ้าล็อกอินแล้ว ให้ดึงชื่อและเบอร์มาใส่ใน Form อัตโนมัติเลย จะได้ไม่ต้องพิมพ์ใหม่
   const [form, setForm] = useState({ name: user?.username || '', phone: '', pickupDate: '', pickupTime: '09:00' });
-  const [step, setStep] = useState(1); // 1=browse, 2=review, 3=confirmed
+  const [step, setStep] = useState(1);
   const [stockCheck, setStockCheck] = useState(null);
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // --- State สำหรับเก็บข้อมูลคิวและออเดอร์ของฉัน ---
   const [myOrders, setMyOrders] = useState([]);
   const [queueCount, setQueueCount] = useState(0);
 
   const TIMES = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
-  // ฟังก์ชันโหลดข้อมูลสินค้า
   useEffect(() => {
     api.getProducts().then(ps => setProducts(ps.filter(p => p.status === 'available')));
   }, []);
 
-  // ฟังก์ชันโหลดข้อมูลคิวและออเดอร์ของฉัน
   const loadMyOrders = async () => {
     try {
       const allOrders = await api.getOrders();
-      
-      // 1. หาออเดอร์ของลูกค้าคนนี้ ที่ยังไม่เสร็จ
       const active = allOrders.filter(o => 
         o.customerName === user?.username && 
         !['completed', 'cancelled'].includes(o.status)
       );
       setMyOrders(active);
 
-      // 2. คำนวณคิวรวมในร้าน
       const totalQueue = allOrders.filter(o => 
         ['pending', 'confirmed', 'preparing'].includes(o.status)
       ).length;
       setQueueCount(totalQueue);
-      
     } catch (error) {
       console.error("โหลดข้อมูลออเดอร์ล้มเหลว", error);
     }
   };
 
-  // ให้โหลดออเดอร์และคิวทันทีที่เปิดหน้านี้
   useEffect(() => {
     if (user) {
       loadMyOrders();
@@ -66,8 +58,16 @@ export default function Customer() {
   const setQty = (id, qty) => setCart(prev => ({ ...prev, [id]: Math.max(0, qty) }));
 
   const handleReview = async () => {
+    // 🌟 ดักไว้ตรงนี้: ถ้ายังไม่ล็อกอิน ให้แจ้งเตือนและส่งไปหน้า login
+    if (!user) {
+      alert('กรุณาเข้าสู่ระบบก่อนทำการสั่งจองครับ');
+      if (setActivePage) setActivePage('login');
+      return;
+    }
+
     if (!cartItems.length) return alert('กรุณาเลือกสินค้า');
     if (!form.name || !form.phone || !form.pickupDate) return alert('กรุณากรอกข้อมูลให้ครบ');
+    
     setLoading(true);
     const check = await api.checkStock(form.pickupDate, cartItems);
     setStockCheck(check);
@@ -89,7 +89,7 @@ export default function Customer() {
     setOrder(newOrder);
     setStep(3);
     setLoading(false);
-    loadMyOrders(); // อัปเดตคิวและออเดอร์ของฉันทันทีหลังสั่งเสร็จ
+    loadMyOrders();
   };
 
   const reset = () => { setCart({}); setStep(1); setOrder(null); setStockCheck(null); };
@@ -121,7 +121,18 @@ export default function Customer() {
         <p className="page-sub">จองสินค้าล่วงหน้า — รับได้ตามวันเวลาที่เลือก</p>
       </div>
 
-      {/* 🌟 การ์ดแสดงสถานะออเดอร์ของฉัน (จะแสดงเมื่อมีออเดอร์ที่ค้างอยู่) */}
+      {/* 🌟 ป้ายแจ้งเตือนให้เข้าสู่ระบบ (แสดงเฉพาะตอนยังไม่ล็อกอิน) */}
+      {!user && (
+        <div className="alert alert-error" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(232, 64, 32, 0.1)', border: '1px solid rgba(232, 64, 32, 0.3)', color: '#f08070' }}>
+          <div><strong>⚠️ คุณยังไม่ได้เข้าสู่ระบบ</strong><br/>สามารถเลือกดูสินค้าได้ แต่กรุณาเข้าสู่ระบบก่อนทำการสั่งจอง</div>
+          {setActivePage && (
+            <button className="btn-primary" style={{ padding: '8px 16px' }} onClick={() => setActivePage('login')}>
+              เข้าสู่ระบบ
+            </button>
+          )}
+        </div>
+      )}
+
       {myOrders.length > 0 && (
         <div className="card" style={{ marginBottom: '28px', borderLeft: '4px solid var(--primary)', backgroundColor: 'var(--card)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
@@ -175,19 +186,20 @@ export default function Customer() {
             <div className="form-grid">
               <div className="form-group">
                 <label>ชื่อ-นามสกุล</label>
-                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="ชื่อของคุณ" />
+                {/* 🌟 ถ้าไม่ได้ล็อกอิน ให้ปิดช่องไม่ให้พิมพ์ */}
+                <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="ชื่อของคุณ" disabled={!user} />
               </div>
               <div className="form-group">
                 <label>เบอร์โทร</label>
-                <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="08x-xxx-xxxx" />
+                <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="08x-xxx-xxxx" disabled={!user} />
               </div>
               <div className="form-group">
                 <label>วันที่รับสินค้า</label>
-                <input type="date" value={form.pickupDate} min={new Date().toISOString().split('T')[0]} onChange={e => setForm({ ...form, pickupDate: e.target.value })} className="date-input" />
+                <input type="date" value={form.pickupDate} min={new Date().toISOString().split('T')[0]} onChange={e => setForm({ ...form, pickupDate: e.target.value })} className="date-input" disabled={!user} />
               </div>
               <div className="form-group">
                 <label>เวลารับสินค้า</label>
-                <select value={form.pickupTime} onChange={e => setForm({ ...form, pickupTime: e.target.value })}>
+                <select value={form.pickupTime} onChange={e => setForm({ ...form, pickupTime: e.target.value })} disabled={!user}>
                   {TIMES.map(t => <option key={t} value={t}>{t} น.</option>)}
                 </select>
               </div>
@@ -221,8 +233,15 @@ export default function Customer() {
                 </div>
               ))}
               <div className="cart-total">รวม: ฿{total.toLocaleString()}</div>
-              <button className="btn-primary full-width" onClick={handleReview} disabled={loading}>
-                {loading ? 'กำลังตรวจสอบ...' : '→ ตรวจสอบและจอง'}
+              
+              {/* 🌟 เปลี่ยนหน้าตาปุ่มยืนยัน ถ้ายังไม่ล็อกอินให้เป็นสีเทาๆ */}
+              <button 
+                className="btn-primary full-width" 
+                onClick={handleReview} 
+                disabled={loading}
+                style={!user ? { backgroundColor: 'var(--bg3)', color: 'var(--text3)', cursor: 'not-allowed' } : {}}
+              >
+                {!user ? '🔒 เข้าสู่ระบบเพื่อสั่งจอง' : (loading ? 'กำลังตรวจสอบ...' : '→ ตรวจสอบและจอง')}
               </button>
             </div>
           )}
