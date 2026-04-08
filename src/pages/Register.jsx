@@ -47,53 +47,51 @@ export default function Register({ setActivePage }) {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '30px', background: '#222', borderRadius: '10px', color: 'white', textAlign: 'center' }}>
-      <h2>📝 สมัครสมาชิกใหม่</h2>
-      <p style={{ color: '#aaa', marginBottom: '20px' }}>สร้างบัญชีเพื่อใช้งานระบบ CAPMOO POS</p>
-      
-      <form onSubmit={handleRegister}>
-        {/* ช่อง Input เหมือนเดิม */}
-        <div style={{ marginBottom: '15px' }}>
-          <input 
-            type="text" 
-            placeholder="ตั้งชื่อผู้ใช้งาน (Username)" 
-            value={username} 
-            onChange={(e) => setUsername(e.target.value)}
-            style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #444', background: '#333', color: 'white' }}
-          />
-        </div>
-        <div style={{ marginBottom: '15px' }}>
-          <input 
-            type="password" 
-            placeholder="ตั้งรหัสผ่าน (Password)" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #444', background: '#333', color: 'white' }}
-          />
-        </div>
-        <div style={{ marginBottom: '20px' }}>
-          <input 
-            type="password" 
-            placeholder="ยืนยันรหัสผ่านอีกครั้ง" 
-            value={confirmPassword} 
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #444', background: '#333', color: 'white' }}
-          />
-        </div>
-        <button type="submit" style={{ width: '100%', padding: '10px', background: '#F5A623', color: '#000', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
-          สมัครสมาชิก
-        </button>
-      </form>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h2 className="auth-title">📝 สมัครสมาชิกใหม่</h2>
+        <p className="auth-subtitle">สร้างบัญชีเพื่อใช้งานระบบ CAPMOO POS</p>
 
-      <p style={{ marginTop: '20px', fontSize: '14px', color: '#aaa' }}>
-        มีบัญชีอยู่แล้ว?{' '}
-        <span 
-          style={{ color: '#F5A623', cursor: 'pointer', textDecoration: 'underline' }}
-          onClick={() => setActivePage('login')}
-        >
-          เข้าสู่ระบบที่นี่
-        </span>
-      </p>
+        <form onSubmit={handleRegister}>
+          <div className="input-box">
+            <input
+              type="text"
+              placeholder="ตั้งชื่อผู้ใช้งาน (Username)"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+
+          <div className="input-box">
+            <input
+              type="password"
+              placeholder="ตั้งรหัสผ่าน (Password)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <div className="input-box">
+            <input
+              type="password"
+              placeholder="ยืนยันรหัสผ่านอีกครั้ง"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </div>
+
+          <button type="submit" className="btn-primary full-width">
+            สมัครสมาชิก
+          </button>
+        </form>
+
+        <p className="auth-subtitle" style={{ marginTop: '20px' }}>
+          มีบัญชีอยู่แล้ว?{' '}
+          <span className="auth-link" onClick={() => setActivePage('login')}>
+            เข้าสู่ระบบที่นี่
+          </span>
+        </p>
+      </div>
     </div>
   );
 }

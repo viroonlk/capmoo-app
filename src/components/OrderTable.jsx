@@ -1,5 +1,5 @@
 const STATUS_MAP = {
-  confirmed: { label: 'ยืนยันแล้ว', cls: 'st-confirmed' },
+  confirmed: { label: 'รับออเดอร์แล้ว', cls: 'st-confirmed' },
   preparing: { label: 'กำลังเตรียม', cls: 'st-preparing' },
   ready: { label: 'พร้อมส่ง', cls: 'st-ready' },
   completed: { label: 'เสร็จสิ้น', cls: 'st-completed' },
@@ -62,7 +62,7 @@ export default function OrderTable({ orders, onStatusChange }) {
                     value={order.status}
                     onChange={e => onStatusChange(order.id, e.target.value)}
                   >
-                    <option value="confirmed">ยืนยันแล้ว</option>
+                    <option value="confirmed">รับออเดอร์แล้ว</option>
                     <option value="preparing">กำลังเตรียม</option>
                     <option value="ready">พร้อมส่ง</option>
                     <option value="completed">เสร็จสิ้น</option>

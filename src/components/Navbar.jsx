@@ -3,9 +3,11 @@ import { useAuth } from '../context/AuthContext'; // 1. นำเข้า Conte
 
 // 2. เพิ่ม property 'requireAdmin' เข้าไปเพื่อบอกว่าเมนูไหนต้องใช้สิทธิ์แอดมิน
 const NAV_ITEMS = [
-  { key: 'admin', label: 'จัดการสินค้า', icon: '⚙️', desc: 'Admin', requireAdmin: true },
+  { key: 'home', label: 'หน้าแรก', icon: '🏠', desc: 'Home', requireAdmin: false },
   { key: 'customer', label: 'สั่งจองออนไลน์', icon: '📱', desc: 'Customer', requireAdmin: false },
   { key: 'pos', label: 'ขายหน้าร้าน', icon: '🛒', desc: 'POS', requireAdmin: false },
+  { key: 'contact', label: 'ติดต่อเรา', icon: '📞', desc: 'Contact', requireAdmin: false },
+  { key: 'admin', label: 'จัดการสินค้า', icon: '⚙️', desc: 'Admin', requireAdmin: true },
   { key: 'orders', label: 'ออเดอร์ทั้งหมด', icon: '📋', desc: 'Orders', requireAdmin: true },
 ];
 

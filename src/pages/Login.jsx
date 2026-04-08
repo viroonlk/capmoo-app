@@ -37,44 +37,42 @@ export default function Login({ setActivePage }) {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '30px', background: '#222', borderRadius: '10px', color: 'white', textAlign: 'center' }}>
-      <h2>🔒 เข้าสู่ระบบ</h2>
-      <p style={{ color: '#aaa', marginBottom: '20px' }}>เข้าสู่ระบบเพื่อใช้งาน CAPMOO POS</p>
-      
-      <form onSubmit={handleLogin}>
-        {/* ช่อง Input เหมือนเดิม */}
-        <div style={{ marginBottom: '15px' }}>
-          <input 
-            type="text" 
-            placeholder="ชื่อผู้ใช้งาน (Username)" 
-            value={username} 
-            onChange={(e) => setUsername(e.target.value)}
-            style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #444', background: '#333', color: 'white' }}
-          />
-        </div>
-        <div style={{ marginBottom: '20px' }}>
-          <input 
-            type="password" 
-            placeholder="รหัสผ่าน (Password)" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #444', background: '#333', color: 'white' }}
-          />
-        </div>
-        <button type="submit" style={{ width: '100%', padding: '10px', background: '#F5A623', color: '#000', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
-          เข้าสู่ระบบ
-        </button>
-      </form>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h2 className="auth-title">🔒 เข้าสู่ระบบ</h2>
+        <p className="auth-subtitle">เข้าสู่ระบบเพื่อใช้งาน CAPMOO POS</p>
 
-      <p style={{ marginTop: '20px', fontSize: '14px', color: '#aaa' }}>
-        ยังไม่มีบัญชีใช่ไหม?{' '}
-        <span 
-          style={{ color: '#F5A623', cursor: 'pointer', textDecoration: 'underline' }}
-          onClick={() => setActivePage('register')}
-        >
-          สมัครสมาชิกเลย
-        </span>
-      </p>
+        <form onSubmit={handleLogin}>
+          <div className="input-box">
+            <input
+              type="text"
+              placeholder="ชื่อผู้ใช้งาน (Username)"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+
+          <div className="input-box">
+            <input
+              type="password"
+              placeholder="รหัสผ่าน (Password)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <button type="submit" className="btn-primary full-width">
+            เข้าสู่ระบบ
+          </button>
+        </form>
+
+        <p className="auth-subtitle" style={{ marginTop: '20px' }}>
+          ยังไม่มีบัญชีใช่ไหม?{' '}
+          <span className="auth-link" onClick={() => setActivePage('register')}>
+            สมัครสมาชิกเลย
+          </span>
+        </p>
+      </div>
     </div>
   );
 }

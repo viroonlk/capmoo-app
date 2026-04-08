@@ -7,6 +7,7 @@ const EMOJIS = ['🥩', '🌶️', '🌿', '⭐', '🔥', '🍖', '🧂'];
 
 export default function Admin() {
   const [products, setProducts] = useState([]);
+  const [stats, setStats] = useState({});
   const [form, setForm] = useState(EMPTY_FORM);
   const [editId, setEditId] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -18,7 +19,10 @@ export default function Admin() {
   useEffect(() => { load(); }, []);
   useEffect(() => { if (tab === 'stock') loadStock(); }, [tab, stockDate]);
 
-  const load = async () => setProducts(await api.getProducts());
+  const load = async () => {
+    setProducts(await api.getProducts());
+    setStats(await api.getStats());
+  };
   const loadStock = async () => setDailyStock(await api.getDailyStock(stockDate));
 
   const flash = (text) => { setMsg(text); setTimeout(() => setMsg(''), 2500); };
@@ -54,6 +58,8 @@ export default function Admin() {
     }
   };
 
+  const lowStockCount = products.filter(p => p.stock > 0 && p.stock <= 10).length;
+
   const handleStockChange = async (productId, qty) => {
     setDailyStock(prev => ({ ...prev, [productId]: Number(qty) }));
     await api.updateDailyStock(stockDate, productId, Number(qty));
@@ -63,7 +69,30 @@ export default function Admin() {
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">⚙️ จัดการระบบ Admin</h1>
-        <p className="page-sub">จัดการสินค้าและสต็อกประจำวัน</p>
+        <p className="page-sub">จัดการสินค้า สต็อก และออเดอร์ในระบบ</p>
+      </div>
+
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-icon">📦</div>
+          <div className="stat-value">{products.length}</div>
+          <div className="stat-label">จำนวนสินค้า</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">⚠️</div>
+          <div className="stat-value">{lowStockCount}</div>
+          <div className="stat-label">สต็อกต่ำ</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">📋</div>
+          <div className="stat-value">{stats.totalOrders || 0}</div>
+          <div className="stat-label">ออเดอร์ทั้งหมด</div>
+        </div>
+        <div className="stat-card highlight">
+          <div className="stat-icon">💰</div>
+          <div className="stat-value">฿{(stats.totalRevenue || 0).toLocaleString()}</div>
+          <div className="stat-label">รายได้รวม</div>
+        </div>
       </div>
 
       {msg && <div className="flash-msg">{msg}</div>}
